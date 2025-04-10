@@ -1,12 +1,20 @@
 const fetch = require('node-fetch');
 const fs = require('fs');
+const path = require('path');
+const outputDir = "pokemonDataJSON";
 
 async function GetPokemonsJson() {
+
+  if (!fs.existsSync(outputDir)) {
+      fs.mkdirSync(outputDir);
+    }
+
   const allPokemon = [];
   const evolutionMap = {};
   const allAbilities = [];
   const allLocations = [];
   const allTypes = [];
+  const allMoves = [];
 
   function removeDup (data) {
     return data.filter((item,index)=>{
@@ -29,6 +37,7 @@ async function GetPokemonsJson() {
       const stats = data.stats.map(s => s.base_stat);
       const total = stats.reduce((sum, s) => sum + s, 0);
       const locs = locations?.map((l) => l?.location_area.name);
+      const moves = data.moves.map(m => m.move.name.replace("-"," "));
 
       if(locs.length > 0){
         locs.map(l => allLocations.push(l));
@@ -36,6 +45,7 @@ async function GetPokemonsJson() {
 
       
       data.abilities.map(a => allAbilities.push(a.ability.name.replace("-"," ")));
+      data.moves.map(m => allMoves.push(m.move.name.replace("-"," ")));
       data.types.map(t => t.name != null ? allTypes.push(t.name) : allTypes.push(t.type.name));
 
       const entry = {
@@ -86,18 +96,22 @@ async function GetPokemonsJson() {
   var abilities = removeDup(allAbilities);
   var locations = removeDup(allLocations);
   var dataTypes = removeDup(allTypes);
+  var moves = removeDup(allMoves);
 
-  fs.writeFileSync('list.json', JSON.stringify(allPokemon, null, 2));
+  fs.writeFileSync(path.join(outputDir, 'list.json'), JSON.stringify(allPokemon, null, 2));
   console.log("Archivo generado: list.json");
 
-  fs.writeFileSync('abilities.json', JSON.stringify(abilities, null, 2));
+  fs.writeFileSync(path.join(outputDir, 'abilities.json'), JSON.stringify(abilities, null, 2));
   console.log("Archivo generado: abilities.json");
 
-  fs.writeFileSync('locations.json', JSON.stringify(locations, null, 2));
+  fs.writeFileSync(path.join(outputDir, 'locations.json'), JSON.stringify(locations, null, 2));
   console.log("Archivo generado: locations.json");
 
-  fs.writeFileSync('types.json', JSON.stringify(dataTypes, null, 2));
+  fs.writeFileSync(path.join(outputDir, 'types.json'), JSON.stringify(dataTypes, null, 2));
   console.log("Archivo generado: types.json");
+
+  fs.writeFileSync(path.join(outputDir, 'moves.json'), JSON.stringify(moves, null, 2));
+  console.log("Archivo generado: moves.json");
 }
 
 GetPokemonsJson();
